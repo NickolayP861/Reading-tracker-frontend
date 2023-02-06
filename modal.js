@@ -5,6 +5,7 @@ window.modal= {
   title: document.querySelector('.modal__title'),
   description: document.querySelector('.modal__description'),
   button: document.querySelector('.modal__button'),
+  changeFormButton: document.querySelector('.change-form'),
   forms: {
     login1: document.querySelector('.login-form-1'),
     login2: document.querySelector('.login-form-2'),
@@ -30,11 +31,11 @@ window.modal= {
   headers: {
     login: {
       step1: {
-        title: 'Шаг 1 из 2',
+        title: 'Авторизация',
         description: 'заполните данные для входа'
       },
       step2: {
-        title: 'Шаг 2 из 2',
+        title: 'Регистрация',
         description: 'заполните профиль',
       }
     },
@@ -54,7 +55,7 @@ window.modal= {
   
   buttonText: {
     login: {
-      step1: 'Продолжить',
+      step1: 'Войти',
       step2: 'Создать профиль'
     },
     addPages: 'Внести страницы',
@@ -71,29 +72,59 @@ window.modal= {
     
     document.querySelector('.modal__close').addEventListener('click', function () {
       this.closeModal();
-    }.bind(this))
+    }.bind(this));
+
+    helpers.addListener('.change-form', 'click', function (e) {
+      e.preventDefault();
+      const form = e.target.href.split('#')[1]
+      switch (form) {
+        case 'login-form-1':
+          this.showLoginContent();
+          break;
+        case 'login-form-2':
+          this.showLogin2Content();
+          break;
+      }
+    }, this);
+  },
+
+  replaceChangeFormButton() {
+    const changeFormButtonToReturn = document.querySelector('.modal__panel > .change-form');
+    if (changeFormButtonToReturn) {
+      helpers.detach(changeFormButtonToReturn);
+      document.querySelector(`.${changeFormButtonToReturn.dataset.originForm}`).append(changeFormButtonToReturn);
+    }
+    const changeFormButton = this.currentForm.querySelector('.change-form');
+    helpers.detach(changeFormButton);
+    this.button.after(changeFormButton);
+    changeFormButton.dataset.originForm = this.currentForm.classList[1];
   },
 
   showLoginContent() {
+    if (this.currentForm) {
+      helpers.hide(this.currentForm);
+    }
+
     this.currentForm = this.forms.login1;
     this.status.textContent = this.statuses.guest;
     this.title.textContent = this.headers.login.step1.title;
     this.description.textContent = this.headers.login.step1.description;
     this.button.textContent = this.buttonText.login.step1;
+    this.replaceChangeFormButton();
     helpers.show(this.currentForm);
     helpers.show(this.elem);
   },
 
-  showAddPagesContent(doneCallback, processFormCallback) {
+  showAddPagesContent(doneCallback, processFormCallback) { // Показать форму и обновить текст на форме
     this.currentForm = this.forms.addPages;
     this.status.textContent = this.statuses.authed;
     this.title.textContent = this.headers.addPages.title;
     this.description.textContent = this.headers.addPages.description;
+    this.button.textContent = this.buttonText.addPages;
     this.doneCallback = doneCallback;
     this.processFormCallback = processFormCallback;
-    this.button.textContent = this.buttonText.addPages;
-    helpers.show(this.currentForm);
-    helpers.show(this.elem);
+    helpers.show(this.currentForm); // Показать форму с новыми данными
+    helpers.show(this.elem);  // Показать модальное окно
   },
 
   showUpdateProfileContent(doneCallback, processFormCallback) {
@@ -121,71 +152,71 @@ window.modal= {
   },
 
   sendForm() {
-    this.currentForm.querySelectorAll('.error').forEach(item => {
+    this.currentForm.querySelectorAll('.error').forEach(item => {  // Cброс ошибок
       item.textContent = '';
     });
 
     this.currentForm.requestSubmit();
-    if (!this.currentForm.checkValidity()) return false;
-    let formData = new FormData(this.currentForm);
+    if (!this.currentForm.checkValidity()) return false;  // Обработка стандартных ошибок валидации бразузера
 
+    let formData = new FormData(this.currentForm);  // Запись данных формы
     for (const pair of formData.entries()) {
       this.filledFields[pair[0]] = pair[1];
     }
 
-      formData = new FormData();
+    formData = new FormData();
 
-      for (const key in this.filledFields) {
-        formData.append(key, this.filledFields[key]);
-      }
+    for (const key in this.filledFields) {
+      formData.append(key, this.filledFields[key]);
+    }
 
-      switch (this.currentForm) {
-        case this.forms.login2:
-          formData = this.login2ProcessForm(formData);
-        default:
-          if (this.processFormCallback) {
-            formData = this.processFormCallback(formData);
-            this.processFormCallback = null;
-          }
-      }
-
-      if (this.currentForm !== this.forms.login1) {
-        this.filledFields = {};
-      }
-      
-      fetch(helpers.constants.baseApiUrl + this.currentForm.getAttribute('action'), {
-        method: 'POST',
-        body: formData
-      }).then(function (response) {
-        return response.json();
-      }.bind(this)).then(function (data) {
-        console.log(data);
-        if (data.errors) {
-          this.currentForm.querySelectorAll('.modal-form__field').forEach(item => {
-
-            const name = item.querySelector('input').getAttribute('name');
-
-            if (data.errors[name]) {
-              console.log(data.errors[name][0]);
-              item.querySelector('.error').textContent = data.errors[name][0];
-            }
-          });
-        } else {
-          switch (this.currentForm) {
-            case this.forms.login2:
-            case this.forms.login1:
-              if (!this.loginSuccessResponse(data)) {
-                return;
-              }
-            default:
-              if (this.doneCallback) {
-                this.doneCallback(data);
-                this.doneCallback = null;
-              } 
-          }
-          this.closeModal();
+    switch (this.currentForm) {  // Вызов препроцессора для подготовки данных формы
+      case this.forms.login2:
+        formData = this.login2ProcessForm(formData);
+      default:
+        if (this.processFormCallback) {
+          formData = this.processFormCallback(formData);
+          this.processFormCallback = null;
         }
-      }.bind(this));
+    }
+
+    if (this.currentForm !== this.forms.login1) {
+      this.filledFields = {};
+    }
+    
+    fetch(helpers.constants.baseApiUrl + this.currentForm.getAttribute('action'), {  // Отправка запроса
+      headers: {
+        token: this.app.getToken(),
+      },
+      method: 'POST',
+      body: formData
+    }).then(function (response) {
+      return response.json();
+    }.bind(this)).then(function (data) {
+      if (data.errors) {  // Обработка ошибок валидации от сервера
+        this.currentForm.querySelectorAll('.modal-form__field').forEach(item => {
+          const name = item.querySelector('input').getAttribute('name');
+
+          if (data.errors[name]) {
+            item.querySelector('.error').textContent = data.errors[name][0];
+          }
+        });
+      } else {  // Вызов постпроцессора для обработки ответа
+        switch (this.currentForm) {
+          case this.forms.login2:
+          case this.forms.login1:
+            if (!this.loginSuccessResponse(data)) {
+              return;
+            }
+          default:
+            if (this.doneCallback) {
+              this.doneCallback(data);
+              this.doneCallback = null;
+            } 
+        }
+        this.closeModal();  // Закрытие формы
+      }
+    }.bind(this));
   },
 
   showLogin2Content()
@@ -196,13 +227,14 @@ window.modal= {
     this.title.textContent = this.headers.login.step2.title;
     this.description.textContent = this.headers.login.step2.description;
     this.button.textContent = this.buttonText.login.step2;
+    this.replaceChangeFormButton();
     helpers.show(this.currentForm);
     helpers.show(this.elem);
   },
 
   loginSuccessResponse(data) {
     if (data.error) {
-      this.showLogin2Content();
+      document.querySelector('.login-form-1 .error').textContent = 'Профиль не найден';
 
       return false;
     }
@@ -217,6 +249,8 @@ window.modal= {
   login2ProcessForm(formData) {
     formData.set('timestamp_start', Date.parse(new Date())/1000);
     formData.set('timestamp_end', Date.parse(formData.get('timestamp_end'))/1000)
+    formData.set('name', '1');
+    formData.set('second_name', '2');
 
     return formData;
   },

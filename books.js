@@ -13,16 +13,9 @@ window.books= {
 
     let lastInputTime = 0;
     const delay = 1000;
-    // const getAutocompleteDataDebounce = helpers.debounce(this.getAutocompleteData.bind(this), 100);
   new Autocomplete('#autocomplete', {
-      // search: async function (input) {
-      //   return _.debounce(async function () {
-      //     console.log(input);
-      //   }.bind(this, input), 1);
-      // }.bind(this)
       search: async function (input) {
         const data = await this.getAutocompleteData(input);
-        console.log(data);
         if (!data) return [];
         return data;
       }.bind(this),
@@ -45,6 +38,9 @@ window.books= {
 
   updateData() {
     fetch(helpers.constants.baseApiUrl + 'get_books_list?' + this.getUpdateBooksParams(), {
+      headers: {
+        token: this.app.getToken(),
+      },
       method: 'GET',
     }).then(function (response) {
       return response.json();
@@ -57,7 +53,7 @@ window.books= {
 
         const poster = book.poster ? book.poster : 'book.png';
         const name = book.name ? book.name : 'Имя не задано';
-        const genre = book.genre ? book.genre : 'Жанр не задан';
+        const genre = book.genre ? book.genre : 'Без жанра';
         const pages = book.pages;
 
         books += `<div class="book">
@@ -76,14 +72,12 @@ window.books= {
 
   getUpdateBooksParams() {
     return new URLSearchParams({
-      token: this.app.getToken(),
     })
   },
 
   getSearchBookParams(input) {
     return new URLSearchParams({
       query: input,
-      token: this.app.getToken(),
     })
   },
 
@@ -101,14 +95,18 @@ window.books= {
     console.log(bookName);
     const book = this.books[bookName];
     console.log(book);
+    const genre = book.genre[0] ? book.genre[0] : 'Без жанра';
+
+    const poster = book.poster ? book.poster.smallThumbnail : 'book.png';
     
     formData.delete('book_query');
     formData.set('name', book.name);
-    formData.set('poster', book.poster.smallThumbnail);
+    formData.set('poster', poster);
     formData.set('genre', book.genre[0]);
     formData.set('is_read', 0);
     formData.set('in_progress', 1);
     formData.set('token', this.app.getToken());
+    console.log(formData);
     return formData;
   },
 
@@ -117,7 +115,7 @@ window.books= {
     this.autocompleteData = [];
     this.books = [];
     if (!input) return [];
-    const response = await fetch(helpers.constants.baseApiUrl + 'search_book?' + this.getSearchBookParams(input))
+    const response = await fetch(helpers.constants.baseApiUrl + 'search_book?' + this.getSearchBookParams(input), {headers: {token: this.app.getToken()}})
     const json = await response.json();
     console.log(json);
     if (json.errors) return [];

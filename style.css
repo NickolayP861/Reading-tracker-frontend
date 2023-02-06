@@ -61,6 +61,7 @@ input, select {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+  color: #7E3D1E;
 }
 
 select {
@@ -474,7 +475,7 @@ footer .copyright {
 }
 .modal-form__field {
   display: inline-block;
-  margin-top: 18px;
+  margin-top: 10px;
   width: 100%;
 }
 .modal-form__label {
@@ -535,4 +536,34 @@ footer .copyright {
 }
 .autocomplete-result:nth-child(1) {
   border-top-width: 1px;
+}
+
+.filters {
+  width: 100%;
+}
+.filters__form {
+  display: flex;
+  justify-content: space-between;
+}
+
+.filter__input {
+  border: 1px solid #7E3D1E;
+  border-radius: 5px;
+  display: inline-block;
+  margin-top: 5px;
+  width: 100%;
+}
+
+.filter__label {
+  display: inline-block;
+}
+
+.filter__item {
+  width: 30%;
+}
+
+.change-form {
+  display: block;
+  text-align: center;
+  padding-bottom: 20px;
 }

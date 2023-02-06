@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="reset.css">
   <!-- <link rel="stylesheet" href="https://unpkg.com/@trevoreyre/autocomplete-js/dist/style.css"> -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
   <link rel="stylesheet" href="style.css">
   <title>Reading Tracker</title>
 </head>
@@ -52,14 +53,35 @@
       </section>
 
       <section class="panel panel_profile" hidden>
-        <button class="filter filter_active">
-          <div class="filter__icon">
-            <div></div>
-            <div></div>
-            <div></div>
+        <div class="filters">
+          <button class="filter">
+            <div class="filter__icon">
+              <div></div>
+              <div></div>
+              <div></div>
+            </div>
+            <div class="filter__text">Фильтр</div>
+          </button>
+
+          <div class="filters__form" hidden>
+            <div class="filter__item">
+              <label for="" class="filter__label">Период: </label>
+              <input type="dates" class="filter__input" name="filter_date">
+            </div>
+            <div class="filter__item">
+              <label for="" class="filter__label">Жанр: </label>
+              <input type="text" class="filter__input" name="filter_genre">
+            </div>
+            <div class="filter__item">
+              <label for="" class="filter__label">Книга: </label>
+              <select class="filter__input" name="filter_book" required>
+                <option value="">Не выбрано</option>
+                <!-- <option value="1">книга 1</option>
+                <option value="2">книга 2</option> -->
+              </select>
+            </div>
           </div>
-          <div class="filter__text">Фильтр</div>
-        </button>
+        </div>
         <div class="panel__title">Достижения</div>
         <div class="panel__description">Здесь вы можете видеть достижения своего профиля.</div>
         <div class="semicircle">
@@ -78,7 +100,7 @@
         <button class="open-profile">Открыть профиль</button>
 
         <div class="panel__title">Статистика</div>
-        <div class="panel__description">Средние показатели на основе ваших целей и результатов</div>
+        <div class="panel__description">Средние показатели на основе ваших целей и результатов.</div>
         <div class="statistics-item statistics-pages">
           <hr class="statistics-item__divider">
           <div class="statistics-item__name">Страниц ежедневно</div>
@@ -110,19 +132,83 @@
       </section>
 
       <section class="panel panel_history" hidden>
-        <button class="filter filter_active">
-          <div class="filter__icon">
-            <div></div>
-            <div></div>
-            <div></div>
+        <div class="filters">
+          <button class="filter">
+            <div class="filter__icon">
+              <div></div>
+              <div></div>
+              <div></div>
+            </div>
+            <div class="filter__text">Фильтр</div>
+          </button>
+
+          <div class="filters__form" hidden>
+            <div class="filter__item">
+              <label for="" class="filter__label">Период: </label>
+              <input type="dates" class="filter__input" name="filter_date">
+            </div>
+            <div class="filter__item">
+              <label for="" class="filter__label">Жанр: </label>
+              <input type="text" class="filter__input" name="filter_genre">
+            </div>
+            <div class="filter__item">
+              <label for="" class="filter__label">Книга: </label>
+              <select class="filter__input" name="filter_book" required>
+                <option value="">Не выбрано</option>
+                <!-- <option value="1">книга 1</option>
+                <option value="2">книга 2</option> -->
+              </select>
+            </div>
           </div>
-          <div class="filter__text">Фильтр</div>
-        </button>
+        </div>
         <div class="panel__title">История</div>
-        <div class="panel__description">Здесь вы можете видеть свою историю чтения</div>
+        <div class="panel__description">Здесь вы можете видеть свою историю чтения.</div>
         <table class="history">
           <tbody></tbody>
         </table>
+      </section>
+
+      <section class="panel panel_graphs" hidden>
+        <div class="filters">
+          <button class="filter">
+            <div class="filter__icon">
+              <div></div>
+              <div></div>
+              <div></div>
+            </div>
+            <div class="filter__text">Фильтр</div>
+          </button>
+
+          <div class="filters__form" hidden>
+            <div class="filter__item">
+              <label for="" class="filter__label">Период: </label>
+              <input type="dates" class="filter__input" name="filter_date">
+            </div>
+            <div class="filter__item">
+              <label for="" class="filter__label">Жанр: </label>
+              <input type="text" class="filter__input" name="filter_genre">
+            </div>
+            <div class="filter__item">
+              <label for="" class="filter__label">Книга: </label>
+              <select class="filter__input" name="filter_book" required>
+                <option value="" hidden>Не выбрано</option>
+                <!-- <option value="1">книга 1</option>
+                <option value="2">книга 2</option> -->
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="panel__title">График</div>
+        <div class="panel__description">Здесь вы можете видеть свой результат на графиках.</div>
+        <canvas class="graph1">
+
+        </canvas>
+
+        <div class="panel__title">Диаграмма</div>
+        <div class="panel__description" style="margin-bottom: 20px;">На диаграмме отображаются ваши результаты с фильтрацией по жанру.</div>
+        <canvas class="graph2">
+
+        </canvas>
       </section>
     </main>
   
@@ -153,9 +239,20 @@
           <input class="modal-form__input" type="password" name="password" required>
           <div class="error"></div>
         </div>
+        <a href="#login-form-2" class="change-form">Зарегистрироваться</a>
       </form>
       <form action="create_profile" class="modal-form login-form-2" hidden>
         <div class="modal-form__field">
+          <label class="modal-form__label">Логин: </label>
+          <input class="modal-form__input" type="text" name="email" required>
+          <div class="error"></div>
+        </div>
+        <div class="modal-form__field">
+          <label class="modal-form__label">Пароль: </label>
+          <input class="modal-form__input" type="password" name="password" required>
+          <div class="error"></div>
+        </div>
+        <!-- <div class="modal-form__field">
           <label class="modal-form__label">Имя: </label>
           <input class="modal-form__input" type="text" name="name" required>
           <div class="error"></div>
@@ -164,7 +261,7 @@
           <label class="modal-form__label">Фамилия: </label>
           <input class="modal-form__input" type="text" name="second_name" required>
           <div class="error"></div>
-        </div>
+        </div> -->
         <div class="modal-form__field">
           <label class="modal-form__label">Прочитать страниц: </label>
           <input class="modal-form__input" type="text" name="need_pages" required>
@@ -180,6 +277,7 @@
           <input class="modal-form__input" type="date" name="timestamp_end" required>
           <div class="error"></div>
         </div>
+        <a href="#login-form-1" class="change-form">Авторизоваться</a>
       </form>
 
       <form action="add_read" class="modal-form add-pages-form" hidden>
@@ -205,7 +303,7 @@
       </form>
 
       <form action="update_profile" class="modal-form update-profile-form" hidden>
-        <div class="modal-form__field">
+        <!-- <div class="modal-form__field">
           <label class="modal-form__label">Имя: </label>
           <input class="modal-form__input" type="text" name="name" required>
           <div class="error"></div>
@@ -214,7 +312,7 @@
           <label class="modal-form__label">Фамилия: </label>
           <input class="modal-form__input" type="text" name="second_name" required>
           <div class="error"></div>
-        </div>
+        </div> -->
         <div class="modal-form__field">
           <label class="modal-form__label">Прочитать страниц: </label>
           <input class="modal-form__input" type="text" name="need_pages" required>
@@ -253,14 +351,21 @@
     </div>
     
   </div>
+
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
   <script src="https://unpkg.com/@trevoreyre/autocomplete-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="lodash.js" type="text/javascript"></script>
   <script src="faq.js" type="text/javascript"></script>
+  <script src="filters.js" type="text/javascript"></script>
   <script src="helpers.js" type="text/javascript"></script>
   <script src="modal.js" type="text/javascript"></script>
   <script src="profile.js" type="text/javascript"></script>
   <script src="books.js" type="text/javascript"></script>
   <script src="history.js" type="text/javascript"></script>
+  <script src="graph.js" type="text/javascript"></script>
   <script src="index.js" type="text/javascript"></script>
 </body>
 </html>

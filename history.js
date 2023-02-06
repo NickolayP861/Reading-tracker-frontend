@@ -1,6 +1,7 @@
 window.historyPage= {
   app: null,
   modal: null,
+  filters: {},
   content: document.querySelector('.content'),
 
   init(app, modal) {
@@ -13,9 +14,16 @@ window.historyPage= {
   },
 
   show() {
+    filters.elem = this.getPanel();
+    filters.onChange = function (filters) {
+      this.filters = filters;
+      this.updateData();
+    }.bind(this);
+    
     helpers.show(this.getPanel());
 
     this.updateData();
+    this.updateBooks();
   },
 
   getPanel() {
@@ -23,7 +31,10 @@ window.historyPage= {
   },
 
   updateData() {
-    fetch(helpers.constants.baseApiUrl + 'get_story_reads?' + this.getGetStoryReadsParams(), {
+    fetch(helpers.constants.baseApiUrl + 'get_story_reads?' + this.getGetStoryReadsParams() + '&token=' + this.app.getToken(), {
+      headers: {
+        token: this.app.getToken(),
+      },
       method: 'GET',
     }).then(function (response) {
       return response.json();
@@ -34,7 +45,7 @@ window.historyPage= {
       for (const key in data) {
         const read = data[key];
 
-        const bookName = read.book_name ? read.book_name : '-';
+        const bookName = read.bookName ? read.bookName : '-';
         const genre = read.genre ? read.genre : '-';
         const pages = read.pages ? read.pages : '-';
         const timestamp = read.timestamp;
@@ -53,10 +64,32 @@ window.historyPage= {
       document.querySelector('.history tbody').innerHTML = reads;
     }.bind(this));
   },
+  
+  updateBooks()
+  {
+    
+    fetch(helpers.constants.baseApiUrl + 'get_books_list', {
+      headers: {
+        token: this.app.getToken(),
+      },
+      method: 'GET',
+    }).then(function (response) {
+      return response.json();
+    }.bind(this)).then(function (data) {
+      console.log(data);
+
+      let options = '<option value="">Не выбрано</option>';
+      for (const key in data) {
+        const book = data[key];
+        options += `<option value="${book.id}">${book.name}</option>`;        
+      }
+
+      // document.querySelector('.panel_history [name="filter_book"]').innerHTML = options;
+      document.querySelectorAll('select[name="filter_book"]').forEach(item => item.innerHTML = options);
+    }.bind(this));
+  },
 
   getGetStoryReadsParams() {
-    return new URLSearchParams({
-      token: this.app.getToken(),
-    })
+    return new URLSearchParams(this.filters)
   },
 }

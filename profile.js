@@ -4,6 +4,7 @@ window.profile= {
   email: null,
   password: null,
   timestampStart: null,
+  filters: {},
   content: document.querySelector('.content'),
 
   init(app, modal) {
@@ -11,7 +12,7 @@ window.profile= {
     this.modal = modal;
 
     helpers.addListener('.add-pages', 'click', this.showAddPagesModal, this);
-    helpers.addListener('.open-profile', 'click', this.showUpdateProfileModal, this);
+    helpers.addListener('.open-profile', 'click', this.showUpdateProfileModal, this);  
   },
 
   hide() {
@@ -19,8 +20,15 @@ window.profile= {
   },
 
   show() {
+    filters.elem = this.getPanel();
+    filters.onChange = function (filters) {
+      this.filters = filters;
+      this.updateData();
+    }.bind(this);
+    
     helpers.show(this.getPanel());
     this.updateData();
+    this.updateBooks();
   },
 
   getPanel() {
@@ -29,11 +37,13 @@ window.profile= {
 
   updateData() {
     fetch(helpers.constants.baseApiUrl + 'get_profit?' + this.getUpdateDataParams(), {
+      headers: {
+        token: this.app.getToken(),
+      },
       method: 'GET',
     }).then(function (response) {
       return response.json();
     }.bind(this)).then(function (data) {
-      console.log(data);
       const pages = data.pages_total ? data.pages_total : 0;
       const books = data.books_total ? data.books_total : 0;
       const pagesPerDay = data.pages_per_day ? data.pages_per_day : 0;
@@ -53,6 +63,9 @@ window.profile= {
 
   updateProfileData() {
     fetch(helpers.constants.baseApiUrl + 'get_profile?' + this.getGetProfileData(), {
+      headers: {
+        token: this.app.getToken(),
+      },
       method: 'GET',
     }).then(function (response) {
       return response.json();
@@ -69,8 +82,8 @@ window.profile= {
       this.password = data.password;
       this.timestampStart = data.timestamp_start;
 
-      document.querySelector('.update-profile-form [name="name"]').value = name;
-      document.querySelector('.update-profile-form [name="second_name"]').value = second_name;
+      // document.querySelector('.update-profile-form [name="name"]').value = name;
+      // document.querySelector('.update-profile-form [name="second_name"]').value = second_name;
       document.querySelector('.update-profile-form [name="need_pages"]').value = need_pages;
       document.querySelector('.update-profile-form [name="need_books"]').value = need_books;
       document.querySelector('.update-profile-form [name="timestamp_end"]').value = date.toISOString().substring(0, 10);
@@ -82,21 +95,17 @@ window.profile= {
   },
 
   getUpdateDataParams() {
-    return new URLSearchParams({
-      token: this.app.getToken(),
-    })
+    return new URLSearchParams(this.filters)
   },
 
   getUpdateBooksParams() {
     return new URLSearchParams({
       in_progress: 1,
-      token: this.app.getToken(),
     })
   },
 
   getGetProfileData() {
     return new URLSearchParams({
-      token: this.app.getToken(),
     })
   },
 
@@ -124,7 +133,6 @@ window.profile= {
 
   processAddPagesForm(formData) {
     formData.set('timestamp', Date.parse(formData.get('timestamp'))/1000);
-    formData.set('token', this.app.getToken());
 
     return formData;
   },
@@ -134,28 +142,29 @@ window.profile= {
     formData.set('timestamp_end', Date.parse(formData.get('timestamp_end'))/1000);
     formData.set('email', this.email);
     formData.set('password', this.password);
-    formData.set('token', this.app.getToken());
 
     return formData;
   },
 
   updateBooks() {
     fetch(helpers.constants.baseApiUrl + 'get_books_list?' + this.getUpdateBooksParams(), {
+      headers: {
+        token: this.app.getToken(),
+      },
       method: 'GET',
     }).then(function (response) {
       return response.json();
     }.bind(this)).then(function (data) {
       console.log(data);
 
-      let options = '<option value="" hidden>Не выбрано</option>';
+      let options = '<option value="">Не выбрано</option>';
       for (const key in data) {
         const book = data[key];
-        options += `<option value="${book.id}">${book.name}</option>`;
-
-        
+        options += `<option value="${book.id}">${book.name}</option>`;        
       }
 
       document.querySelector('.add-pages-form select').innerHTML = options;
+      document.querySelectorAll('select[name="filter_book"]').forEach(item => item.innerHTML = options);
     }.bind(this));
   }
 }

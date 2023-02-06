@@ -13,9 +13,28 @@ const app = {
     profile.init(this, modal);
     books.init(this, modal);
     historyPage.init(this, modal);
+    filters.init();
+    graphs.init(this, modal)
 
-    document.querySelector('input[type="password"]').value = '';
+    document.querySelectorAll('input[type="password"]').value = '';
     helpers.addListener('.menu__item a', 'click', this.turnPage, this);
+
+
+    $('input[type="dates"]').on('apply.daterangepicker', function (ev, picker) {
+        // if (picker.startDate.length && picker.endDate.length) {
+          $(this).val(picker.startDate.format(picker.locale.format) + ' - ' + picker.endDate.format(picker.locale.format));
+        // }
+    });
+
+    $('input[type="dates"]').on('cancel.daterangepicker', function (ev, picker) {
+        $(this).val('');
+    });
+    $('input[type="dates"]').daterangepicker({
+      autoUpdateInput: false,
+      locale: {
+        format: 'DD.MM.YYYY',
+      },
+    });
 
     this.pageModule = faq;
   },
@@ -25,33 +44,32 @@ const app = {
   },
 
   turnPage(e) {
-    const page = e.target.getAttribute('href').slice(1);
+    const page = e.target.getAttribute('href').slice(1); // Страница, на которую переключаемся
 
-    if (!this.getToken() && page != 'faq') {
+    if (!this.getToken() && page != 'faq') { // Проверка на токен
       this.showLoginModal();
 
       return;
     }
 
-
-    if (this.page === page) return;
+    if (this.page === page) return; // Если страница не изменилась, ничего не делаем
     this.page = page;
 
-    const content = document.querySelector('.content');
+    const content = document.querySelector('.content'); // Изменить контент
     const contentToTurn = content.cloneNode(true);
     this.updateContent(content);
 
-    this.changeBookmark(e.target.parentElement);
+    this.changeBookmark(e.target.parentElement); // Изменить закладку
 
     document.body.append(contentToTurn);
 
     setTimeout(() => {
-      contentToTurn.classList.add('turn');
+      contentToTurn.classList.add('turn'); // Анимация переворачивания страницы
       setTimeout(() => {
-        contentToTurn.remove();
+        contentToTurn.remove(); // Удаление
       }, 1200);
 
-      switch (this.page) {
+      switch (this.page) { // Переключить страницу
         case 'profile':
           this.showProfile(content);
           break;
@@ -63,6 +81,9 @@ const app = {
           break;
         case 'history':
           this.showHistory(content);
+          break;
+        case 'graph':
+          this.showGraphs(content);
           break;
       }
     },100);
@@ -107,6 +128,12 @@ const app = {
     faq.content = content;
     profile.content = content;
     books.content = content;
+  },
+
+  showGraphs() {
+    this.pageModule.hide();
+    this.pageModule = graphs;
+    graphs.show();
   },
 
   getToken() {
